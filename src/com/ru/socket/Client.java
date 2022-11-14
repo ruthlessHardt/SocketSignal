@@ -68,7 +68,8 @@ public class Client {
                     System.out.println(ois.readObject());
                 }
             } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -96,7 +97,8 @@ public class Client {
                     oos.flush();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -124,7 +126,8 @@ public class Client {
                     oos.flush();
                 }
             } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+                System.out.println(e.getMessage());
                 try {
                     socket.close();
                     Client.connection_state = false;
