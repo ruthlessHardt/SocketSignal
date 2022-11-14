@@ -34,23 +34,9 @@ static class Server_listen implements Runnable{
     public void run() {
         try {
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-            Map<String,String> map = (Map<String, String>) ois.readObject();
-            int count = 0;
+            Map<String,String> map = new HashMap<>();
             while(true){
-                /**
-                 *                 //心跳检测不到，判定断线
-                 *                 //有心跳则重置计时器
-                 *                 if(Objects.nonNull(map) && "heart".equals(map.get("type"))){
-                 *                     count = 0;
-                 *                 }
-                 *                 count++;
-                 *                 if(count == 7){
-                 *                     System.out.println("超过7s未检测到心跳！！ 判定--> Client已断连");
-                 *                 }
-                 */
-                if(ois.readObject()!=null){
                     System.out.println(ois.readObject());
-                }
             }
         } catch (IOException | ClassNotFoundException e) {
 //            e.printStackTrace();

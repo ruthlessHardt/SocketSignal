@@ -116,7 +116,7 @@ public class Client {
             try {
                 System.out.println("心跳包线程启动");
                 while(true){
-                    Thread.sleep(2000);
+                    Thread.sleep(7000);
                     Map<String,String> map = new HashMap<>();
                     map.put("type","heart");
                     map.put("msg","来自Client的心跳包");
