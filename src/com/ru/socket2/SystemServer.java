@@ -107,19 +107,21 @@ public class SystemServer {
                         //System.out.println("服务端：" + str);
                         clientIpSocketMap.values().stream()
                                 .filter(Objects::nonNull)
-                                .filter(item-> finalStr.indexOf(getClientInfo(item))<0)
+                                .filter(item-> !finalStr.contains(getClientInfo(item)))
                                 .forEach(clientSocket -> {
                                     try {
                                         printWriter = doWriter(clientSocket, outputStream, printWriter);
                                         printWriter.println(finalStr);
                                     } catch (IOException e) {
                                         System.out.println("报错6 发送出现异常 " + e.getStackTrace());
+                                        removeSocket(clientSocket);
                                     }
                                 });
                     }
 
                 } catch (Exception e) {
                     System.out.println("报错了3，可能是客户端由于某种原因断开了连接" + e + ";" + Thread.currentThread().getName());
+                    removeSocket(clientSocket);
                     break;//结束本次对客户端的循环
                 } finally {
                     try {
@@ -165,12 +167,10 @@ public class SystemServer {
                                     printWriter.println(finalStr);
                                 } catch (IOException e) {
                                     System.out.println("报错6 发送出现异常 " + e.getStackTrace());
-
+                                    removeSocket(clientSocket);
                                 }
                             });
-
                 }
-
             } catch (Exception e) {
                 System.out.println("报错了4，可能是客户端由于某种原因断开了连接" + e);
             } finally {
@@ -196,6 +196,11 @@ public class SystemServer {
         outputStream = clientSocket.getOutputStream();
         printWriter = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
         return printWriter;
+    }
+
+    private static void removeSocket(Socket clientSocket){
+        String clientInfo = getClientInfo(clientSocket);
+        clientIpSocketMap.remove(clientInfo);
     }
 }
 
