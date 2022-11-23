@@ -14,14 +14,32 @@ public class Client3 {
 
     private final static String charset="UTF8";
 
+    private static boolean connection_state = false;
+
     public static void main(String [] args){
+        while (!connection_state){
+            connect();
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * connect
+     */
+    public static void connect(){
         try{
             Socket socket=new Socket();
             socket.connect(new InetSocketAddress("127.0.0.1", 10005));
+            connection_state = true;
             System.out.println("客户端已启动，您本地的字符格式为"+Charset.defaultCharset().name()+"，请输入信息：");
             executorService.submit(new ReadThread(socket));
             executorService.submit(new WriteThread(socket));
-            executorService.shutdown();//在子线程运行结束后关闭线程池，否则主进程不会结束，感觉测试不完整
+            executorService.submit(new HeartThread(socket));
+//            executorService.shutdown();//在子线程运行结束后关闭线程池，否则主进程不会结束，感觉测试不完整
 
 //由于客户端只有两个进程，所有可以不使用线程池
 //            Thread t1=new Thread(new ReadThread(socket));
@@ -33,9 +51,24 @@ public class Client3 {
 //            System.out.println("结束了--");
 
         }catch(Exception e){
-            System.out.println("报错了1"+e);
+//            e.printStackTrace();
+            System.out.println(e.getMessage());
+            connection_state = false;
         }finally {
 
+        }
+    }
+
+    private static void reconnect(){
+        while (!connection_state){
+            System.out.println("正在尝试重新连接.......");
+            connect();
+        }
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+//            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -98,7 +131,7 @@ public class Client3 {
                     }
 
                 }catch(Exception e) {
-                    System.out.println("报错了3，可能是服务端由于某种原因断开了连接，停止接收服务器信息，请输入任意字符结束访问" + e + ";" + Thread.currentThread().getName());
+                    System.out.println("可能是服务端由于某种原因断开了连接," + e.getMessage() + ";" + Thread.currentThread().getName());
                     break;//结束本次对客户端的循环
                 }finally{
                     System.out.println("ReadThread finally");
@@ -113,6 +146,39 @@ public class Client3 {
             }
         }
     }
-}
 
+    static class HeartThread implements Runnable{
+        private Socket clientSocket;
+        private OutputStream outputStream;
+        private PrintWriter printWriter;
+
+        public HeartThread(Socket clientSocket) {
+            this.clientSocket = clientSocket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                System.out.println("心跳包线程已启动");
+                System.out.println("==================================================");
+                while(true){
+                    Thread.sleep(7000);
+                    outputStream =clientSocket.getOutputStream();
+                    printWriter=new PrintWriter(new OutputStreamWriter(outputStream,charset),true);
+                    printWriter.println("客户端3 的心跳...");
+                }
+            } catch (InterruptedException | IOException e) {
+//                e.printStackTrace();
+                System.out.println(e.getMessage());
+                try {
+                    clientSocket.close();
+                    connection_state = false;
+                    reconnect();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+}
 

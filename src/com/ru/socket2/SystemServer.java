@@ -101,26 +101,30 @@ public class SystemServer {
                     String str;
                     for (; (str = bufferedReader.readLine()) != null; ) {
                         str = "客户端【"+getClientInfo(clientSocket) + "】 : " + str;
-                        System.out.println(str);
-                        //向其它端转发
-                        final String finalStr = str;
-                        //System.out.println("服务端：" + str);
-                        clientIpSocketMap.values().stream()
-                                .filter(Objects::nonNull)
-                                .filter(item-> !finalStr.contains(getClientInfo(item)))
-                                .forEach(clientSocket -> {
-                                    try {
-                                        printWriter = doWriter(clientSocket, outputStream, printWriter);
-                                        printWriter.println(finalStr);
-                                    } catch (IOException e) {
-                                        System.out.println("报错6 发送出现异常 " + e.getStackTrace());
-                                        removeSocket(clientSocket);
-                                    }
-                                });
+//                        System.out.println(str);
+
+                        if(!str.equals("") && !str.contains("心跳")){
+                            System.out.println(str);
+                            //向其它端转发
+                            final String finalStr = str;
+                            //System.out.println("服务端：" + str);
+                            clientIpSocketMap.values().stream()
+                                    .filter(Objects::nonNull)
+                                    .filter(item-> !finalStr.contains(getClientInfo(item)))
+                                    .forEach(clientSocket -> {
+                                        try {
+                                            printWriter = doWriter(clientSocket, outputStream, printWriter);
+                                            printWriter.println(finalStr);
+                                        } catch (IOException e) {
+                                            System.out.println("报错6 发送出现异常 " + e.getStackTrace());
+                                            removeSocket(clientSocket);
+                                        }
+                                    });
+                        }
                     }
 
                 } catch (Exception e) {
-                    System.out.println("报错了3，可能是客户端由于某种原因断开了连接" + e + ";" + Thread.currentThread().getName());
+                    System.out.println("可能是客户端由于某种原因断开了连接," + e.getMessage() + ";" + Thread.currentThread().getName());
                     removeSocket(clientSocket);
                     break;//结束本次对客户端的循环
                 } finally {
